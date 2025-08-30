@@ -8,32 +8,42 @@
 
 #show raw: set block(fill: silver.lighten(65%), width: 100%, inset: 1em)
 
+#show link: underline
+#show link: set text(fill: blue)
 == Outline
 
 #outline()
 
-== Why Link Traversal Query Processing (LTQP)
+== What Are We Trying to Achieve
+Query the web of linked data like one unified database
+
+=== Challenges
+  - *Decentralization*: No single endpoint, the data scattered across countless servers
+  - *Scale*: Too large to download completely
+  - *Data Quality*: Large portions are query-irrelevant or untrusted
+
+== Link Traversal Query Processing (LTQP)
+
+#align(center,image("./img/LTQP.drawio.png", width: 55%))
 
 - Challenges of LTQP
   - Performance Issues
     - Slow query execution
-    - High network cost (many HTTP requests)
-  - Difficult to determine result trustworthiness and quality
+    - High network overhead
+  - Trust & quality concerns
 
 - Why use LTQP
-  - Querying of unindexed networks
-  - *Facilitate integration across multiple indexed data networks that are only loosely connected*
+  - Query unindexed networks
+  - *Integrate loosely connected data networks*
 
-== LTQP
-
-#align(center,image("./img/LTQP.drawio.png", width: 60%))
-
-== Federated Queries and LTQP
-- Both involve a federation of _interfaces_ (SPARQL, TPF, Files)
-- Both can involve dynamic federation with a finite number of member
+== Federated Queries And LTQP Similarities
+- Involve a federation of _interfaces_ (SPARQL, TPF, RDF Files)
+- The federation _can be_ dynamic 
   - Service-Safeness concept for federated queries (#link("https://www.sciencedirect.com/science/article/abs/pii/S157082681200114X")[Federating queries in SPARQL 1.1: Syntax, semantics and evaluation])
+    - Example in the next slide
   - Reachability Criteria (#link("https://dl.acm.org/doi/10.1145/2309996.2310005")[Foundations of Traversal Based Query Execution over Linked Data])
-- We could potentially apply optimization strategies from the federated query world to LTQP 
+- *Emulation of optimization strategies across querying models _may_ be possible*
+  - Requires a theoretical foundation
 
 #pagebreak()
 
@@ -56,70 +66,91 @@ WHERE {
   }
 }
 ```
-== FedQPL
-- We need a fundation for this transfert of strategies 
+
+== Can FedQPL be a Foundation for LTQP 
+
 - Paper: #link("https://dl.acm.org/doi/10.1145/3428757.3429120")[FedQPL: A Language for Logical Query Plans over
 Heterogeneous Federations of RDF Data Sources] (time following definitions and tables are from this paper)
 
-#align(center, image("./img/definition_4_fedqpl.png", width: 50%))
+#figure(
+  image("./img/fedqplOperators.drawio.png", width: 90%),
+  caption: [Summary of FedQPL operators as defined in Definition 4],
+) <fig:fedqpl-operators>
 
-#align(center,image("./img/definition_1_fedqpl.png", width: 50%))
+- Notion of _interface_
+  - Tied to a federation member
+  - Defines which knowledge graph can be queried
+  - Defines the query expressivity supported
 
-== LTQP Query Plan Using the FedQPL Model
+#pagebreak()
 
-Two interpretations of LTQP:
+=== Two interpretations of LTQP
 
-- *Stream-based Internal Querying* (current interpretations)
+- *Stream-based Internal Querying* (current interpretation without FedQPL)
   - Query the internal triple store with $Q$ in a streaming way
-- *Virtual Resource Federation*  
+- *Virtual Resource Federation* (proposed interpretation with FedQPL)
   - Query the _virtual_ resource (federation member)
-  - *Current approach* Engine performs "exhaustive source assignment" (Definition 9)
-  - Enables investigation of source assignment strategies
-  - Most strategies require statistics about federation members
-    - The shape index could provide some of those statistics
+  - *Current approach:* "exhaustive source assignment" (Definition 9)
+  - *Future approaches:* emulating other source assignment algorithms in the literature
 
-#align(center, image("./img/definition_9_fedqpl.png", width: 60%))
+#pagebreak()
 
-#align(center, image("./img/table_1_fedqpl.png", width: 60%))
+=== Consideration
+
+- Most strategies require statistics about federation members
+  - The shape index could provide some of those statistics
+  - Already been used to reduce the search space of LTQP
+    - #link("https://ceur-ws.org/Vol-3954/paper2300.pdf")[Opportunities for Shape-Based Optimization of Link Traversal Queries]
+    - Journal paper currently under submission
+- FedQPL does not consider dynamic federations even for federated queries
+
+== Shape Index
+
+#align(center,image("./img/shape_index.png", width: 100%))
 
 == FedUp Approach
 
-- *FedUp Framework* (#link("https://dl.acm.org/doi/10.1145/3589334.3645704")[FedUP: Querying Large-Scale Federations of SPARQL Endpoints])
-  - Designed to "process SPARQL queries over large federations of SPARQL endpoints"
-  - Shows similar analogy with LTQP approach
+- Paper: (#link("https://dl.acm.org/doi/10.1145/3589334.3645704")[FedUP: Querying Large-Scale Federations of SPARQL Endpoints])
+  - Designed to "[process] SPARQL queries over large federations of SPARQL endpoints"
+  - "[O]nly a few combinations of sources may return result"
+  - *Similar problem with LTQP*
+    - *Previous research* reduce the search space (source selection)
+    - *Current research* reduce the non-contributing join ("Result-Aware query plans")
 
-#align(center, image("./img/problem_1_fedup.png", width: 60%))
-
-#align(center, image("./img/example_3_fedup.png", width: 60%))
-
-- *Key Requirements*
-  - Necessitates a summary mechanism
+=== Requirement
+  - Summary mechanism
+    - To compute the "Result-Aware query plans"
   - Shape index _could_ serve as this summary
-
-#align(center, image("./img/fedup_summary.png", width: 60%))
-
 == Plan
 
 === Formalization
-- Make FedQPL Dynamic
-  - Data source discovery in federated queries
-  - LTQP reachability integration
-    - Expanding plan vs adaptative plan
+- Extend FedQPL to consider dynamic federations
+  - Federated queries
+  - LTQP
+  - Expanding plan
+    - _Could_ be a simpler particular case of adaptive plan
 
-- Describe the FedUp algorithm with the shape index
-  - Describe algorithm with shape index integration
+- Adapt FedUp for LTQP
+  - Use the shape index as a summary mechanism
+    - _Note:_ This may already be addressed through FedQPL extensions, as FedQPL is the foundation of FedUp
+
+#pagebreak()
 
 === Implementation
 
 ==== Static File Federation
-- Experiment with Fedup algorithm using shape indexes inside of Comunica
+- Experiment with FedUp algorithm using shape indexes within Comunica
 
 ==== Provenance Information in the Internal Triple Store
-- Add subweb provenance to triples
-- Store subweb shape index information in engine
+- Add sub-web and shape index provenance 
 
 ==== Cache Algorithm
 - Perform federated query first, then extend results with LTQP
 
-==== Traversal integration
-- Use Fedup approach during link traversal with adaptative query planning
+==== Traversal Integration
+- Use FedUp approach during link traversal with adaptive query planning
+
+==== Considerations
+- The separate RDF store by resource implementation of Comunica is significantly slower than the one store implementation
+  - A refactoring will soon be done to address this issue
+  - The one store implementation would require some "hacks" to implement the proposed approach
