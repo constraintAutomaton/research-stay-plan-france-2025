@@ -154,3 +154,21 @@ Heterogeneous Federations of RDF Data Sources] (time following definitions and t
 - The separate RDF store by resource implementation of Comunica is significantly slower than the one store implementation
   - A refactoring will soon be done to address this issue
   - The one store implementation would require some "hacks" to implement the proposed approach
+
+==== Evaluation
+
+- We plan to use the #link("https://github.com/SolidBench/SolidBench.js")[SolidBench] benchmark
+  - Specifically designed for evaluating Link Traversal Query Processing
+  - Based on #link("https://github.com/ldbc/ldbc_snb_datagen_hadoop")[LDBC SNB social network dataset]
+  - Includes shape index module
+- Additional benchmarks or datasets could be interesting
+- Evaluation metrics:
+  - Query execution time
+  - Query planning overhead
+  - First result arrival time
+  - Termination time (time between the last result and the end of the query)
+  - Waiting time (cumulative time between the arrival of two results)
+  - Diefficiency metric
+  - Ratio of query-relevant joins
+  - Theoretical metrics about query plan efficiency (to be explored)
+
